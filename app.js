@@ -1,17 +1,35 @@
-// const { json } = require('body-parser');
-// const { create } = require('domain');
 const experss = require('express');
 const fs = require('fs');
 const app = experss();
+const morgan=require('morgan');
+
+
+// 1) MIDDLEWARES==========================================
+
+app.use(morgan('dev'));
 app.use(experss.json());
+app.use((req,res,next)=>{
+    console.log('Hello from the middleware🤘');
+    next();
+});
+
+app.use((req,res,next)=>{
+    req.requestTime= new Date().toISOString();
+    next();
+});
+
+
+// 2) ROUTE HANDLERS=========================================
 
 const tours = JSON.parse(
   fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`)
 );
 
 const getAllTours = (req, res) => {
+    console.log(req.requestTime);
   res.status(200).json({
     status: 'success',
+    requestedAt:req.requestTime,
     results: tours.length,
     data: {
       tours,
@@ -84,16 +102,13 @@ const deleteTour = (req, res) => {
   });
 };
 
-// app.get('/api/v1/tours', getAllTours);
-// app.get('/api/v1/tours/:id', getTour);
-// app.post('/api/v1/tours', createTour);
-// app.patch('/api/v1/tours/:id', updateTour);
-// app.delete('/api/v1/tours/:id', deleteTour);
-
+// 3) ROUTES=============================================
 app.route('/api/v1/tours').get(getAllTours).post(createTour);
 app.route('/api/v1/tours/:id').get(getTour).patch(updateTour).delete(deleteTour);
 
 
+
+// 4) START THE SERVER========================================
 const port = 3000;
 app.listen(port, () => {
   console.log(`App running on port ${port}...`);
