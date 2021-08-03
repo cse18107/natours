@@ -1,3 +1,4 @@
+const { json } = require('body-parser');
 const experss = require('express');
 const fs = require('fs');
 const app = experss();
@@ -23,6 +24,9 @@ app.use((req,res,next)=>{
 
 const tours = JSON.parse(
   fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`)
+);
+const users=JSON.parse(
+    fs.readFileSync(`${__dirname}/dev-data/data/users.json`)
 );
 
 const getAllTours = (req, res) => {
@@ -102,10 +106,78 @@ const deleteTour = (req, res) => {
   });
 };
 
+const getAllUsers=(req,res)=>{
+    res.status(200).json({
+        status:"success",
+        data:{
+            users:users
+        }
+    });
+}
+const getUser=(req,res)=>{
+    const userId=req.params.id*1;
+    const user=users.find((el)=>el.id===userId);
+    if(!user){
+        return res.status(404).json({
+            status:"Invalid",
+            message:"Invalid user id"
+        });
+    }
+    res.status(201).json({
+        status:"success",
+        data:{
+            user:user
+        }
+    });
+}
+const createUser=(req,res)=>{
+    const newUserId=users[users.length-1].id+1;
+    const newUser=Object.assign({id:newUserId},req.body);
+    users.push(newUser);
+    fs.writeFile(`${__dirname}/dev-data/data/users.json`,
+        JSON.stringify(users),
+        (err)=>{
+            res.status(200).json({
+                status:"success",
+                user:{
+                    newUser
+                }
+            });
+        }
+    );
+}
+
+const updateUser=(req,res)=>{
+    if(req.params.id*1>users.length){
+        return res.status(404).json({
+            status:"Invalid",
+            message:"Invalid user"
+        });
+    }
+    res.status(203).json({
+        status:"success",
+        message:"<User Updated successfully>"
+    });
+};
+const deleteUser=(req,res)=>{
+    if(req.params.id*1>users.length){
+        return res.status(404).json({
+            status:"Invalid",
+            message:"Invalid user"
+        });
+    }
+    res.status(204).json({
+        status:"success",
+        data:null
+    });
+};
+
+
 // 3) ROUTES=============================================
 app.route('/api/v1/tours').get(getAllTours).post(createTour);
 app.route('/api/v1/tours/:id').get(getTour).patch(updateTour).delete(deleteTour);
-
+app.route('/api/v1/users').get(getAllUsers).post(createUser);
+app.route('/api/v1/users/:id').get(getUser).patch(updateUser).delete(deleteUser)
 
 
 // 4) START THE SERVER========================================
