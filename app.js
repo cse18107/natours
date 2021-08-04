@@ -174,6 +174,8 @@ const deleteUser=(req,res)=>{
 
 
 // 3) ROUTES=============================================
+const tourRouter = experss.Router();
+
 app.route('/api/v1/tours').get(getAllTours).post(createTour);
 app.route('/api/v1/tours/:id').get(getTour).patch(updateTour).delete(deleteTour);
 app.route('/api/v1/users').get(getAllUsers).post(createUser);
